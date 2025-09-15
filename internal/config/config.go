@@ -5,10 +5,13 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/CrispyCl/TestGolangUsers/pkg/storage/postgres"
 	"github.com/ilyakaznacheev/cleanenv"
 )
 
 type Config struct {
+	Postgres postgres.Config
+
 	Env string `env:"ENV" env-default:"local"`
 }
 
