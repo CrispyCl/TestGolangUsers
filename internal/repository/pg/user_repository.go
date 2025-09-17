@@ -30,6 +30,13 @@ func NewUserRepository(db *sqlx.DB) *UserRepository {
 func (r *UserRepository) Create(ctx context.Context, email string, passHash []byte, role models.UserRole) (int64, error) {
 	const op = "repository.user.postgres.Create"
 
+	switch role {
+	case models.UserRoleUser, models.UserRoleManager, models.UserRoleAdmin, models.UserRoleUnspecified:
+		// available
+	default:
+		return 0, fmt.Errorf("%s: %w", op, repository.ErrInvalidUserRole)
+	}
+
 	query := sq.Insert("users").
 		Columns("email", "pass_hash", "role").
 		Values(email, passHash, role).
