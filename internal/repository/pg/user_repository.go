@@ -94,3 +94,28 @@ func (r *UserRepository) getOne(ctx context.Context, where sq.Eq, op string) (*m
 
 	return &user, nil
 }
+
+func (r *UserRepository) UpdateLastSeen(ctx context.Context, id int64) (*models.User, error) {
+	const op = "repository.user.postgres.UpdateLastSeen"
+
+	query := sq.Update("users").
+		Set("last_seen", sq.Expr("NOW()")).
+		Where(sq.Eq{"id": id}).
+		Suffix("RETURNING id, email, pass_hash, role, created_at, last_seen").
+		PlaceholderFormat(sq.Dollar)
+
+	sqlStr, args, err := query.ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("%s: build query: %w", op, err)
+	}
+
+	var user models.User
+	if err = r.db.QueryRowContext(ctx, sqlStr, args...).Scan(&user.ID, &user.Email, &user.PassHash, &user.Role, &user.CreatedAt, &user.LastSeen); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("%s: %w", op, repository.ErrUserNotFound)
+		}
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return &user, nil
+}
