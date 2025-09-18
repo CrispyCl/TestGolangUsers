@@ -136,6 +136,55 @@ func TestUserRepository_CreateAndGet(t *testing.T) {
 	})
 }
 
+func TestUserRepository_UpdateLastSeen(t *testing.T) {
+	t.Run("update last seen for existing user", func(t *testing.T) {
+		id, err := userRepo.Create(ctx, "user_for_update1@mail.com", []byte("hash1"), models.UserRoleUser)
+		fmt.Println(id, err)
+		assert.NoError(t, err)
+
+		userBefore, err := userRepo.GetByID(ctx, id)
+		assert.NoError(t, err)
+
+		time.Sleep(100 * time.Microsecond)
+
+		updatedUser, err := userRepo.UpdateLastSeen(ctx, id)
+		assert.NoError(t, err)
+
+		assert.True(t, updatedUser.LastSeen.After(userBefore.LastSeen))
+		assert.WithinDuration(t, time.Now(), updatedUser.LastSeen, time.Second)
+		fmt.Println(userBefore.LastSeen, updatedUser.LastSeen)
+
+		assert.Equal(t, userBefore.ID, updatedUser.ID)
+		assert.Equal(t, userBefore.Email, updatedUser.Email)
+		assert.Equal(t, userBefore.PassHash, updatedUser.PassHash)
+		assert.Equal(t, userBefore.Role, updatedUser.Role)
+		assert.Equal(t, userBefore.CreatedAt, updatedUser.CreatedAt)
+	})
+
+	t.Run("update last seen for non-existing user", func(t *testing.T) {
+		_, err := userRepo.UpdateLastSeen(ctx, 999_999)
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, repository.ErrUserNotFound)
+	})
+
+	t.Run("update last seen multiple times", func(t *testing.T) {
+		id, err := userRepo.Create(ctx, "user_for_update2@mail.com", []byte("hash2"), models.UserRoleUser)
+		assert.NoError(t, err)
+
+		var lastSeen time.Time
+		for i := range 5 {
+			time.Sleep(10 * time.Microsecond)
+			updatedUser, err := userRepo.UpdateLastSeen(ctx, id)
+			assert.NoError(t, err)
+
+			if i > 0 {
+				assert.True(t, updatedUser.LastSeen.After(lastSeen))
+			}
+			lastSeen = updatedUser.LastSeen
+		}
+	})
+}
+
 func migrationsPath() string {
 	dir, err := os.Getwd()
 	if err != nil {
