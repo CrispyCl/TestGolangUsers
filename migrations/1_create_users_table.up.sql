@@ -1,4 +1,3 @@
--- Active: 1753536148336@@127.0.0.1@10252@users
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'user_role') THEN
@@ -15,3 +14,5 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     last_seen TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 )
+
+CREATE INDEX IF NOT EXISTS idx_email ON users (email);
