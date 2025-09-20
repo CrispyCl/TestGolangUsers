@@ -48,7 +48,7 @@ func (s *UserService) Create(ctx context.Context, email, password string, role m
 	id, err := s.userRepo.Create(ctx, email, passHash, role)
 	if err != nil {
 		if errors.Is(err, repository.ErrUserExists) {
-			log.Info("user with this email is exists", logger.Err(err))
+			log.Debug("user with this email is exists", logger.Err(err))
 		} else if errors.Is(err, repository.ErrInvalidUserRole) {
 			log.Error("invalid user role", logger.Err(err))
 		} else {
@@ -67,7 +67,7 @@ func (s *UserService) CheckPassword(ctx context.Context, email, password string)
 	user, err := s.userRepo.GetByEmail(ctx, email)
 	if err != nil {
 		if errors.Is(err, repository.ErrUserNotFound) {
-			log.Info("user not found", logger.Err(err))
+			log.Debug("user with this email not found", logger.Err(err))
 			return false, fmt.Errorf("%s: %w", op, service.ErrInvalidCredentials)
 		}
 
@@ -76,7 +76,7 @@ func (s *UserService) CheckPassword(ctx context.Context, email, password string)
 	}
 
 	if err := bcrypt.CompareHashAndPassword(user.PassHash, []byte(password)); err != nil {
-		log.Info("invalid credentials", logger.Err(err))
+		log.Debug("failed to compare password", logger.Err(err))
 		return false, fmt.Errorf("%s: %w", op, service.ErrInvalidCredentials)
 	}
 
@@ -90,11 +90,10 @@ func (s *UserService) GetByEmail(ctx context.Context, email string) (*models.Use
 	user, err := s.userRepo.GetByEmail(ctx, email)
 	if err != nil {
 		if errors.Is(err, repository.ErrUserNotFound) {
-			log.Info("user not found", logger.Err(err))
-			return nil, fmt.Errorf("%s: %w", op, err)
+			log.Debug("user with this email not found", logger.Err(err))
+		} else {
+			log.Error("failed to get user", logger.Err(err))
 		}
-
-		log.Error("failed to get user", logger.Err(err))
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
@@ -108,11 +107,10 @@ func (s *UserService) GetByID(ctx context.Context, id int64) (*models.User, erro
 	user, err := s.userRepo.GetByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, repository.ErrUserNotFound) {
-			log.Info("user not found", logger.Err(err))
-			return nil, fmt.Errorf("%s: %w", op, err)
+			log.Debug("user with this id not found", logger.Err(err))
+		} else {
+			log.Error("failed to get user", logger.Err(err))
 		}
-
-		log.Error("failed to get user", logger.Err(err))
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
@@ -126,7 +124,7 @@ func (s *UserService) UpdateLastSeen(ctx context.Context, id int64) error {
 	_, err := s.userRepo.UpdateLastSeen(ctx, id)
 	if err != nil {
 		if errors.Is(err, repository.ErrUserNotFound) {
-			log.Error("user with this id not found", logger.Err(err))
+			log.Debug("user with this id not found", logger.Err(err))
 		} else {
 			log.Error("failed to update user last seen", logger.Err(err))
 		}
