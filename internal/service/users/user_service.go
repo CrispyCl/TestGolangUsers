@@ -83,6 +83,42 @@ func (s *UserService) CheckPassword(ctx context.Context, email, password string)
 	return true, nil
 }
 
+func (s *UserService) GetByEmail(ctx context.Context, email string) (*models.User, error) {
+	const op = "service.user.GetByEmail"
+	log := s.log.With(slog.String("op", op), slog.String("email", email))
+
+	user, err := s.userRepo.GetByEmail(ctx, email)
+	if err != nil {
+		if errors.Is(err, repository.ErrUserNotFound) {
+			log.Info("user not found", logger.Err(err))
+			return nil, fmt.Errorf("%s: %w", op, err)
+		}
+
+		log.Error("failed to get user", logger.Err(err))
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return user, nil
+}
+
+func (s *UserService) GetByID(ctx context.Context, id int64) (*models.User, error) {
+	const op = "service.user.GetByID"
+	log := s.log.With(slog.String("op", op), slog.Int64("id", id))
+
+	user, err := s.userRepo.GetByID(ctx, id)
+	if err != nil {
+		if errors.Is(err, repository.ErrUserNotFound) {
+			log.Info("user not found", logger.Err(err))
+			return nil, fmt.Errorf("%s: %w", op, err)
+		}
+
+		log.Error("failed to get user", logger.Err(err))
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return user, nil
+}
+
 func (s *UserService) UpdateLastSeen(ctx context.Context, id int64) error {
 	const op = "service.user.UpdateLastSeen"
 	log := s.log.With(slog.String("op", op), slog.String("id", strconv.FormatInt(id, 10)))
