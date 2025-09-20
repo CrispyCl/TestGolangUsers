@@ -82,7 +82,7 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-func TestUserRepository_CreateAndGet(t *testing.T) {
+func TestUserPostgresRepository_CreateAndGet(t *testing.T) {
 	t.Run("create and get user", func(t *testing.T) {
 		id, err := userRepo.Create(ctx, "user1@mail.com", []byte("hash1"), models.UserRoleUser)
 		assert.NoError(t, err)
@@ -136,7 +136,7 @@ func TestUserRepository_CreateAndGet(t *testing.T) {
 	})
 }
 
-func TestUserRepository_UpdateLastSeen(t *testing.T) {
+func TestUserPostgresRepository_UpdateLastSeen(t *testing.T) {
 	t.Run("update last seen for existing user", func(t *testing.T) {
 		id, err := userRepo.Create(ctx, "user_for_update1@mail.com", []byte("hash1"), models.UserRoleUser)
 		fmt.Println(id, err)
