@@ -15,32 +15,39 @@ type logger struct {
 	logger      *zap.Logger
 }
 
-func (l logger) Debug(ctx context.Context, msg string, fields ...zap.Field) {
+func (l *logger) Debug(ctx context.Context, msg string, fields ...zap.Field) {
 	l.logger.Debug(msg, l.withContext(ctx, fields...)...)
 }
 
-func (l logger) Info(ctx context.Context, msg string, fields ...zap.Field) {
+func (l *logger) Info(ctx context.Context, msg string, fields ...zap.Field) {
 	l.logger.Info(msg, l.withContext(ctx, fields...)...)
 }
 
-func (l logger) Warn(ctx context.Context, msg string, fields ...zap.Field) {
+func (l *logger) Warn(ctx context.Context, msg string, fields ...zap.Field) {
 	l.logger.Warn(msg, l.withContext(ctx, fields...)...)
 }
 
-func (l logger) Error(ctx context.Context, msg string, fields ...zap.Field) {
+func (l *logger) Error(ctx context.Context, msg string, fields ...zap.Field) {
 	l.logger.Error(msg, l.withContext(ctx, fields...)...)
 }
 
-func (l logger) Fatal(ctx context.Context, msg string, fields ...zap.Field) {
+func (l *logger) Fatal(ctx context.Context, msg string, fields ...zap.Field) {
 	l.logger.Fatal(msg, l.withContext(ctx, fields...)...)
 }
 
-func (l logger) withContext(ctx context.Context, fields ...zap.Field) []zap.Field {
+func (l *logger) withContext(ctx context.Context, fields ...zap.Field) []zap.Field {
 	fields = append(fields, zap.String(ServiceName, l.serviceName))
 	if v := ctx.Value(RequestIDKey); v != nil {
 		fields = append(fields, zap.String(RequestID, v.(string)))
 	}
 	return fields
+}
+
+func (l *logger) With(fields ...zap.Field) Logger {
+	return &logger{
+		serviceName: l.serviceName,
+		logger:      l.logger.With(fields...),
+	}
 }
 
 func NewZapLogger(serviceName string, env string) (Logger, error) {
@@ -78,13 +85,14 @@ func NewZapLogger(serviceName string, env string) (Logger, error) {
 	case "local":
 		config.Level = zap.NewAtomicLevelAt(zap.DebugLevel)
 		config.Development = true
+		config.DisableStacktrace = true
 		config.Encoding = "console"
 
 		encoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 		encoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout("15:04:05.000")
 		encoderConfig.EncodeCaller = zapcore.ShortCallerEncoder
 
-		options = []zap.Option{zap.AddCaller(), zap.AddCallerSkip(1), zap.AddStacktrace(zap.ErrorLevel)}
+		options = []zap.Option{zap.AddCaller(), zap.AddCallerSkip(1)}
 
 		config.EncoderConfig = encoderConfig
 
@@ -162,13 +170,14 @@ func NewZapLogger(serviceName string, env string) (Logger, error) {
 	default:
 		config.Level = zap.NewAtomicLevelAt(zap.DebugLevel)
 		config.Development = true
+		config.DisableStacktrace = true
 		config.Encoding = "console"
 
 		encoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 		encoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout("15:04:05.000")
 		encoderConfig.EncodeCaller = zapcore.ShortCallerEncoder
 
-		options = []zap.Option{zap.AddCaller(), zap.AddCallerSkip(1), zap.AddStacktrace(zap.ErrorLevel)}
+		options = []zap.Option{zap.AddCaller(), zap.AddCallerSkip(1)}
 
 		config.EncoderConfig = encoderConfig
 

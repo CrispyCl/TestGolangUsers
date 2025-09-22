@@ -21,4 +21,10 @@ type Logger interface {
 	Warn(ctx context.Context, msg string, fields ...zap.Field)
 	Error(ctx context.Context, msg string, fields ...zap.Field)
 	Fatal(ctx context.Context, msg string, fields ...zap.Field)
+
+	With(fields ...zap.Field) Logger
+}
+
+func GetLoggerFromContext(ctx context.Context) Logger {
+	return ctx.Value(LoggerKey).(Logger)
 }
