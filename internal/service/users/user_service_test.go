@@ -2,7 +2,7 @@ package users_test
 
 import (
 	"context"
-	"log/slog"
+	"log"
 	"os"
 	"testing"
 	"time"
@@ -12,6 +12,7 @@ import (
 	"github.com/CrispyCl/TestGolangUsers/internal/repository/mock"
 	"github.com/CrispyCl/TestGolangUsers/internal/service"
 	"github.com/CrispyCl/TestGolangUsers/internal/service/users"
+	"github.com/CrispyCl/TestGolangUsers/pkg/logger"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -22,10 +23,14 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	var log = slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
+	zapLogger, err := logger.NewZapLogger("user_service_test", "local")
+	if err != nil {
+		log.Fatalf("could not create zap logger: %v", err)
+	}
+
 	var userRepo = mock.NewUserRepository()
 
-	userServ = users.NewUserService(log, userRepo)
+	userServ = users.NewUserService(zapLogger, userRepo)
 
 	os.Exit(m.Run())
 }
