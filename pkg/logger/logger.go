@@ -1,38 +1,24 @@
 package logger
 
 import (
-	"log/slog"
-	"os"
+	"context"
+
+	"go.uber.org/zap"
 )
 
-func SetupLogger(env string) *slog.Logger {
-	var log *slog.Logger
+type contextKey string
 
-	switch env {
-	case "local":
-		log = slog.New(
-			slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}),
-		)
-	case "dev":
-		log = slog.New(
-			slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}),
-		)
-	case "prod":
-		log = slog.New(
-			slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}),
-		)
-	default:
-		log = slog.New(
-			slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}),
-		)
-	}
+const (
+	LoggerKey    contextKey = "logger"
+	RequestIDKey contextKey = "requestID"
+	RequestID               = "requestID"
+	ServiceName             = "service"
+)
 
-	return log
-}
-
-func Err(err error) slog.Attr {
-	return slog.Attr{
-		Key:   "error",
-		Value: slog.StringValue(err.Error()),
-	}
+type Logger interface {
+	Debug(ctx context.Context, msg string, fields ...zap.Field)
+	Info(ctx context.Context, msg string, fields ...zap.Field)
+	Warn(ctx context.Context, msg string, fields ...zap.Field)
+	Error(ctx context.Context, msg string, fields ...zap.Field)
+	Fatal(ctx context.Context, msg string, fields ...zap.Field)
 }
