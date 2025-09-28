@@ -50,6 +50,10 @@ func (l *logger) With(fields ...zap.Field) Logger {
 	}
 }
 
+func (l *logger) Sync() error {
+	return l.logger.Sync()
+}
+
 func NewZapLogger(serviceName string, env string) (Logger, error) {
 	if env == "dev" || env == "prod" {
 		if err := os.MkdirAll("logs", 0755); err != nil {
