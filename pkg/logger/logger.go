@@ -23,6 +23,7 @@ type Logger interface {
 	Fatal(ctx context.Context, msg string, fields ...zap.Field)
 
 	With(fields ...zap.Field) Logger
+	Sync() error
 }
 
 func GetLoggerFromContext(ctx context.Context) Logger {

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"os/signal"
@@ -23,6 +24,12 @@ func main() {
 	if err != nil {
 		panic(fmt.Errorf("failed to load logger: %+v", err))
 	}
+
+	defer func() {
+		if log.Sync(); err != nil && !errors.Is(err, syscall.ENOTTY) {
+			fmt.Println("Error syncing logger:", err)
+		}
+	}()
 
 	ctx := context.WithValue(context.Background(), loggerKey, log)
 
