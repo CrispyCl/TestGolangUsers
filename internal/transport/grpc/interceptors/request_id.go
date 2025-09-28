@@ -31,7 +31,6 @@ func RequestIDInterceptor(baseLog logger.Logger) grpc.UnaryServerInterceptor {
 		log := baseLog.With(zap.String(logger.RequestID, reqID))
 
 		ctx = context.WithValue(ctx, loggerKey, log)
-		ctx = context.WithValue(ctx, requestIDKey, reqID)
 
 		return handler(ctx, req)
 	}
