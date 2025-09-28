@@ -12,7 +12,8 @@ import (
 type Config struct {
 	Postgres postgres.Config
 
-	Env string `env:"ENV" env-default:"local"`
+	Env            string `env:"ENV" env-default:"local"`
+	GRPCServerPort int    `env:"GRPC_SERVER_PORT"`
 }
 
 func MustLoad() Config {
