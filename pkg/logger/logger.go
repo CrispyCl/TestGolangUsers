@@ -26,6 +26,7 @@ type Logger interface {
 	Sync() error
 }
 
-func GetLoggerFromContext(ctx context.Context) Logger {
-	return ctx.Value(LoggerKey).(Logger)
+func GetLoggerFromContext(ctx context.Context) (Logger, bool) {
+	log, ok := ctx.Value(LoggerKey).(Logger)
+	return log, ok
 }
