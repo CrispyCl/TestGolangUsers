@@ -6,6 +6,7 @@ require (
 	github.com/CrispyCl/testprotos v0.0.4
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/golang-migrate/migrate/v4 v4.19.0
+	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.3.2
 	github.com/ilyakaznacheev/cleanenv v1.5.0
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/lib/pq v1.10.9
