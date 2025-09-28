@@ -2,14 +2,15 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
 
+	"github.com/CrispyCl/TestGolangUsers/internal/app"
 	"github.com/CrispyCl/TestGolangUsers/internal/config"
 	"github.com/CrispyCl/TestGolangUsers/pkg/logger"
+	"go.uber.org/zap"
 )
 
 const (
@@ -20,25 +21,38 @@ const (
 func main() {
 	cfg := config.MustLoad()
 
-	log, err := logger.NewZapLogger(serviceName, cfg.Env)
+	mainLogger, err := logger.NewZapLogger(serviceName, cfg.Env)
 	if err != nil {
-		panic(fmt.Errorf("failed to load logger: %+v", err))
+		panic(fmt.Errorf("failed to load logger: %w", err))
+	}
+	defer mainLogger.Sync()
+
+	ctx := context.WithValue(context.Background(), loggerKey, mainLogger)
+
+	app, err := app.New(ctx, cfg)
+	if err != nil {
+		mainLogger.Fatal(ctx, err.Error())
 	}
 
-	defer func() {
-		if log.Sync(); err != nil && !errors.Is(err, syscall.ENOTTY) {
-			fmt.Println("Error syncing logger:", err)
-		}
+	graceCh := make(chan os.Signal, 1)
+	signal.Notify(graceCh, syscall.SIGTERM, syscall.SIGINT)
+
+	errCh := make(chan error, 1)
+
+	go func() {
+		mainLogger.Info(ctx, "server.start")
+		errCh <- app.Start(ctx)
 	}()
 
-	ctx := context.WithValue(context.Background(), loggerKey, log)
+	select {
+	case sig := <-graceCh:
+		mainLogger.Info(ctx, "received signal, stopping server", zap.String("signal", sig.String()))
+	case err := <-errCh:
+		mainLogger.Error(ctx, "server stopped unexpectedly", zap.Error(err))
+	}
 
-	log.Info(ctx, "Run the application")
-
-	stop := make(chan os.Signal, 1)
-	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
-
-	<-stop
-
-	log.Info(ctx, "Gracefully stopped")
+	if err := app.Stop(ctx); err != nil {
+		mainLogger.Error(ctx, "error while stopping the server", zap.Error(err))
+	}
+	mainLogger.Info(ctx, "server.stop")
 }
