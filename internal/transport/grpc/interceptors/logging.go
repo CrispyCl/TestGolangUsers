@@ -7,6 +7,8 @@ import (
 	"github.com/CrispyCl/TestGolangUsers/pkg/logger"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 func LoggingInterceptor(baseLog logger.Logger) grpc.UnaryServerInterceptor {
@@ -23,8 +25,9 @@ func LoggingInterceptor(baseLog logger.Logger) grpc.UnaryServerInterceptor {
 		resp, err = handler(ctx, req)
 
 		duration := time.Since(start)
-		if err != nil {
-			log.Warn(ctx, "gRPC request: finished with error",
+
+		if status.Code(err) == codes.Internal {
+			log.Warn(ctx, "unexpected internal error in gRPC",
 				zap.String("method", info.FullMethod),
 				zap.Duration("duration", duration),
 				zap.Error(err),
@@ -33,6 +36,7 @@ func LoggingInterceptor(baseLog logger.Logger) grpc.UnaryServerInterceptor {
 			log.Info(ctx, "gRPC request: finished",
 				zap.String("method", info.FullMethod),
 				zap.Duration("duration", duration),
+				zap.String("code", status.Code(err).String()),
 			)
 		}
 
