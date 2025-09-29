@@ -139,7 +139,6 @@ func TestUserPostgresRepository_CreateAndGet(t *testing.T) {
 func TestUserPostgresRepository_UpdateLastSeen(t *testing.T) {
 	t.Run("update last seen for existing user", func(t *testing.T) {
 		id, err := userRepo.Create(ctx, "user_for_update1@mail.com", []byte("hash1"), models.UserRoleUser)
-		fmt.Println(id, err)
 		assert.NoError(t, err)
 
 		userBefore, err := userRepo.GetByID(ctx, id)
@@ -152,7 +151,6 @@ func TestUserPostgresRepository_UpdateLastSeen(t *testing.T) {
 
 		assert.True(t, updatedUser.LastSeen.After(userBefore.LastSeen))
 		assert.WithinDuration(t, time.Now(), updatedUser.LastSeen, time.Second)
-		fmt.Println(userBefore.LastSeen, updatedUser.LastSeen)
 
 		assert.Equal(t, userBefore.ID, updatedUser.ID)
 		assert.Equal(t, userBefore.Email, updatedUser.Email)
