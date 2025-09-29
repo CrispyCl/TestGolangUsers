@@ -21,6 +21,10 @@ type GRPCServer struct {
 	userServ UserService
 }
 
+func NewServer(userServ UserService) *GRPCServer {
+	return &GRPCServer{userServ: userServ}
+}
+
 type UserService interface {
 	Create(ctx context.Context, email, password string, role models.UserRole) (int64, error)
 	CheckPassword(ctx context.Context, email, password string) (bool, error)
