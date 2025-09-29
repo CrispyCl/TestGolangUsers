@@ -23,7 +23,7 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	zapLogger, err := logger.NewZapLogger("user_service_test", "local")
+	zapLogger, err := logger.NewZapLogger("user_service_test", "test")
 	if err != nil {
 		log.Fatalf("could not create zap logger: %v", err)
 	}

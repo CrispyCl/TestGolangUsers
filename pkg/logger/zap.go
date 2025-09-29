@@ -86,6 +86,12 @@ func NewZapLogger(serviceName string, env string) (Logger, error) {
 	var options []zap.Option
 
 	switch env {
+	case "test":
+		return &logger{
+			serviceName: serviceName,
+			logger:      zap.NewNop(),
+		}, nil
+
 	case "local":
 		config.Level = zap.NewAtomicLevelAt(zap.DebugLevel)
 		config.Development = true
